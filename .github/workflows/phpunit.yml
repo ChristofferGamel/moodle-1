@@ -2,7 +2,7 @@ name: PHPUnit
 
 on:
   pull_request:
-    branches: [ "main", "staging"  ]
+    branches: [ "main", "staging" ]
 
 jobs:
   build-test:
@@ -11,14 +11,21 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        
-      - name: install mariadb
-        run: | 
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install mariadb
+        run: |
           sudo apt install mariadb-server
           sudo systemctl disable mariadb
           sudo systemctl stop mariadb
-        # uses: getong/mariadb-action@v1.11
-        
+
       - name: Setup PHP
         id: setup-php
         uses: shivammathur/setup-php@v2
@@ -26,7 +33,6 @@ jobs:
           extensions: phar, iconv, mbstring, gd, intl, sodium, zip
           tools: composer
 
-      
       - name: Set up php.ini
         run: >
           REPO_ROOT="`pwd`"
@@ -44,29 +50,15 @@ jobs:
           -e '$a\\extension=phar.so'
           server/php/php.ini
 
-      # - name: Install composer
-      #   run: |
-      #     cd server/moodle
-      #     php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-      #     php composer-setup.php
-
       - name: Check enabled PHP extensions
-        run: | 
+        run: |
           php -m | grep -E 'gd|intl|zip'
           php -r "echo phpversion('phar');"
           php -r "echo ini_get('max_input_vars');"
           more php.ini
           realpath php.ini
 
-      # - name: Copy php.ini to PHP-CLI directory
-      #   run: |
-      #     sudo cp server/php/php.ini /etc/php/8.2/cli/php.ini
-
-      # - uses: "ramsey/composer-install@v3"
-      #   with:
-      #     working-directory: "/etc/php/8.2/cli/php.ini"
-
-      - name: install composer
+      - name: Install composer
         run: |
           cd server/moodle
           sudo apt-get update
@@ -78,10 +70,10 @@ jobs:
           composer -v
 
       - name: Check enabled PHP extensions
-        run: | 
+        run: |
           php -m
           php --ini
-      
+
       - name: Install the curl certificate
         run: curl https://curl.se/ca/cacert.pem >cacert.pem
 
