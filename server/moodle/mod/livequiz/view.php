@@ -40,5 +40,5 @@ $PAGE->set_title(get_string('modulename', 'mod_livequiz'));
 $PAGE->set_heading(get_string('modulename', 'mod_livequiz'));
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading('This is the livequiz view page');
+echo $OUTPUT->heading('This is the livequiz view page.');
 echo $OUTPUT->footer();
